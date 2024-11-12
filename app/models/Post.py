@@ -18,3 +18,17 @@ class Post(db.Model):
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
+
+    def from_dict(self, data):
+        for field in ['body', 'author', 'timestamp']:
+            if field in data:
+                setattr(self, field, data[field])
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'body': self.body,
+            'timestamp': self.timestamp.isoformat() + 'Z',
+            'author': self.author.username
+        }
+        return data
