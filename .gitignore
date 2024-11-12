@@ -1,3 +1,5 @@
+.env
+.flashenv
 .idea/
 .vscode/
 .venv*/
