@@ -44,4 +44,4 @@ class User(db.Model):
         }
         return data
 
-from app.models.Post import Post
+from app.models.post import Post

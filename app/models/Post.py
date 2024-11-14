@@ -5,7 +5,7 @@ import sqlalchemy as sa
 import sqlalchemy.orm as so
 
 from app import db
-from app.models.User import User
+from app.models.user import User
 
 class Post(db.Model):
     id:        so.Mapped[int] = so.mapped_column(primary_key=True)
