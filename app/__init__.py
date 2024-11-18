@@ -1,4 +1,6 @@
-from flask import Flask
+from werkzeug.http import HTTP_STATUS_CODES
+
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -24,6 +26,26 @@ def create_app(config_class=Config):
     def hello_world():
         return '<p>Hello, World!</p>'
     
+    @app.errorhandler(404)
+    def not_found(e):
+        if request.path.startswith('/api/'):
+            payload = {
+                'success': False,
+                'message': HTTP_STATUS_CODES.get(404, 'Unknown error'),
+                'data': {}
+            }
+            return payload, 404
+        
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        if request.path.startswith('/api/'):
+            payload = {
+                'success': False,
+                'message': HTTP_STATUS_CODES.get(405, 'Unknown error'),
+                'data': {}
+            }
+            return payload, 405
+        
     return app
 
 from app import models

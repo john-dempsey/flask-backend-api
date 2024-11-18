@@ -18,17 +18,6 @@ def error_response(status_code, data=None):
     }
     return payload, status_code
 
-def bad_request(message):
-    return error_response(400, message)
-
 @bp.errorhandler(HTTPException)
 def handle_exception(e):
     return error_response(500, e.code)
-
-@bp.app_errorhandler(404)
-def not_found_error(error):
-    return error_response(404, error.description)
-
-@bp.app_errorhandler(500)
-def not_found_error(error):
-    return error_response(500, error.description)
