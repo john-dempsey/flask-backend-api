@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from flask import request
 from app import db
 
@@ -36,3 +38,37 @@ def create_post():
     db.session.commit()
     response = post.to_dict()
     return success_response(201, response)
+
+@bp.route('/posts/<int:id>', methods=['PUT'])
+@token_auth.login_required
+def update_post(id):
+    post = Post.query.get(id)
+    if post is None:
+        return error_response(404, f'Post id {id} not found')
+    user = token_auth.current_user()
+    if user != post.author:
+        return error_response(403, 'Permission denied')
+    data = request.get_json()
+    if 'body' not in data:
+        return error_response(400, 'Missing fields')
+    post.body = data['body']
+    post.timestamp = datetime.now(timezone.utc)
+    db.session.commit()
+    response = post.to_dict()
+    return success_response(201, response)
+
+@bp.route('/posts/<int:id>', methods=['DELETE'])
+@token_auth.login_required
+def delete_post(id):
+    post = Post.query.get(id)
+    if post is None:
+        return error_response(404, f'Post id {id} not found')
+    user = token_auth.current_user()
+    if user != post.author:
+        return error_response(403, 'Permission denied')
+    for tag in post.get_tags():
+        post.remove_tag(tag)
+    db.session.delete(post)
+    db.session.commit()
+    return success_response(204, None)
+

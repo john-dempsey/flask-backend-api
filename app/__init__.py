@@ -35,6 +35,8 @@ def create_app(config_class=Config):
                 'data': {}
             }
             return payload, 404
+        else :
+            return '404 Not Found', 404
         
     @app.errorhandler(405)
     def method_not_allowed(e):
@@ -45,6 +47,8 @@ def create_app(config_class=Config):
                 'data': {}
             }
             return payload, 405
+        else :
+            return '405 Method Not Allowed', 405
         
     return app
 

@@ -15,6 +15,9 @@ class Post(db.Model):
     user_id:   so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),index=True)
 
     author: so.Mapped[User] = so.relationship(back_populates='posts')
+    tags:   so.WriteOnlyMapped['Tag'] = so.relationship('Tag', secondary='post_tag', 
+                                                        back_populates='posts', 
+                                                        passive_deletes=True)
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
@@ -32,3 +35,19 @@ class Post(db.Model):
             'author': self.author.username
         }
         return data
+
+    def add_tag(self, tag):
+        if not self.has_tag(tag):
+            self.tags.add(tag)
+    
+    def remove_tag(self, tag):
+        if self.has_tag(tag):
+            self.tags.remove(tag)
+
+    def has_tag(self, tag):
+        return tag in db.session.scalars(self.tags.select())
+    
+    def get_tags(self):
+        return db.session.scalars(self.tags.select()).all()
+
+from app.models.tag import Tag, post_tag
