@@ -18,6 +18,7 @@ class Post(db.Model):
     tags:   so.WriteOnlyMapped['Tag'] = so.relationship('Tag', secondary='post_tag', 
                                                         back_populates='posts', 
                                                         passive_deletes=True)
+    comments: so.WriteOnlyMapped['Comment'] = so.relationship('Comment', back_populates='post')
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
@@ -32,7 +33,8 @@ class Post(db.Model):
             'id': self.id,
             'body': self.body,
             'timestamp': self.timestamp.isoformat() + 'Z',
-            'author': self.author.username
+            'author': self.author.username,
+            'tags': [tag.name for tag in self.get_tags()],
         }
         return data
 
@@ -49,5 +51,20 @@ class Post(db.Model):
     
     def get_tags(self):
         return db.session.scalars(self.tags.select()).all()
+    
+    def add_comment(self, comment):
+        if not self.has_comment(comment):
+            self.comments.add(comment)
+    
+    def remove_comment(self, comment):
+        if self.has_comment(comment):
+            self.comments.remove(comment)
+
+    def has_comment(self, comment):
+        return comment in db.session.scalars(self.comments.select())
+    
+    def get_comments(self):
+        return db.session.scalars(self.comments.select()).all()
 
 from app.models.tag import Tag, post_tag
+from app.models.comment import Comment

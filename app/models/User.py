@@ -20,6 +20,7 @@ class User(db.Model):
     token_expiration: so.Mapped[Optional[datetime]]
     
     posts: so.WriteOnlyMapped['Post'] = so.relationship(back_populates='author')
+    comments: so.WriteOnlyMapped['Comment'] = so.relationship('Comment', back_populates='author')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -75,3 +76,4 @@ class User(db.Model):
         return data
 
 from app.models.post import Post
+from app.models.comment import Comment

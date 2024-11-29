@@ -10,14 +10,14 @@ from app.models import Post
 
 @bp.route('/posts', methods=['GET'])
 @token_auth.login_required
-def get_posts():
+def post_index():
     posts = Post.query.all()
     data = [post.to_dict() for post in posts]
     return success_response(200, data)
 
 @bp.route('/posts/<int:id>', methods=['GET'])
 @token_auth.login_required
-def get_post(id):
+def post_show(id):
     post = Post.query.get(id)
     if post is None:
         return error_response(404, f'Post id {id} not found')
@@ -26,7 +26,7 @@ def get_post(id):
 
 @bp.route('/posts', methods=['POST'])
 @token_auth.login_required
-def create_post():
+def post_create():
     data = request.get_json()
     if 'body' not in data:
         return error_response(400, 'Missing fields')
@@ -41,7 +41,7 @@ def create_post():
 
 @bp.route('/posts/<int:id>', methods=['PUT'])
 @token_auth.login_required
-def update_post(id):
+def post_update(id):
     post = Post.query.get(id)
     if post is None:
         return error_response(404, f'Post id {id} not found')
@@ -59,7 +59,7 @@ def update_post(id):
 
 @bp.route('/posts/<int:id>', methods=['DELETE'])
 @token_auth.login_required
-def delete_post(id):
+def post_delete(id):
     post = Post.query.get(id)
     if post is None:
         return error_response(404, f'Post id {id} not found')

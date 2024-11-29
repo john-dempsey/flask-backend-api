@@ -6,7 +6,7 @@ from flask import Blueprint
 bp = Blueprint('cli', __name__, cli_group=None)
 
 from app import db
-from app.models import User, Post, Tag
+from app.models import User, Post, Tag, Comment
 
 @bp.cli.command("seed-db")
 def seed_db():
@@ -53,5 +53,17 @@ def seed_db():
         num_tags = faker.random_int(min=1, max=5)
         for _ in range(num_tags):
             post.add_tag(Tag.query.get(faker.random_int(min=1, max=len(tags))))
+        num_comments = faker.random_int(min=0, max=10)
+        for _ in range(num_comments):
+            data = dict(
+                body=faker.text(),
+                timestamp=faker.date_time_this_year(tzinfo=timezone.utc),
+                author=User.query.get(faker.random_int(min=1, max=num_users)),
+                post=post
+            )
+            comment = Comment()
+            comment.from_dict(data)
+            db.session.add(comment)
+            post.add_comment(comment)
     
     db.session.commit()

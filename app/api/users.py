@@ -8,7 +8,7 @@ from app.api.errors import success_response, error_response
 
 @bp.route('/users/<int:id>', methods=['GET'])
 @token_auth.login_required
-def get_user(id):
+def user_show(id):
     user = User.query.get(id)
     if user is None:
         return error_response(404, f'User id {id} not found')
@@ -18,13 +18,13 @@ def get_user(id):
 
 @bp.route('/users', methods=['GET'])
 @token_auth.login_required
-def get_users():
+def user_index():
     users = User.query.all()
     data = [user.to_dict() for user in users]
     return success_response(200, data)
 
 @bp.route('/users', methods=['POST'])
-def create_user():
+def user_register():
     data = request.get_json()
     if 'username' not in data or 'email' not in data or 'password' not in data:
         return error_response(400, 'Missing fields')
@@ -46,7 +46,7 @@ def create_user():
 
 @bp.route('/users/<int:id>', methods=['PUT'])
 @token_auth.login_required
-def update_user(id):
+def user_update(id):
     if token_auth.current_user().id != id:
         return error_response(403)
     user = User.query.get(id)
