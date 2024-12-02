@@ -2,6 +2,7 @@ from typing import Optional
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
 import secrets
+from flask import current_app
 
 import sqlalchemy as sa
 import sqlalchemy.orm as so
@@ -19,8 +20,17 @@ class User(db.Model):
                                                                   unique=True)
     token_expiration: so.Mapped[Optional[datetime]]
     
-    posts: so.WriteOnlyMapped['Post'] = so.relationship(back_populates='author')
+    last_message_read_time: so.Mapped[Optional[datetime]]
+
+    posts:    so.WriteOnlyMapped['Post'] = so.relationship(back_populates='author')
     comments: so.WriteOnlyMapped['Comment'] = so.relationship('Comment', back_populates='author')
+
+    messages_sent:     so.WriteOnlyMapped['Message'] = so.relationship(foreign_keys='Message.sender_id',
+                                                                       back_populates='author')
+    messages_received: so.WriteOnlyMapped['Message'] = so.relationship(foreign_keys='Message.recipient_id', 
+                                                                       back_populates='recipient')
+
+    tasks: so.WriteOnlyMapped['Task'] = so.relationship(back_populates='user')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -55,6 +65,26 @@ class User(db.Model):
             self.posts.select().subquery())
         return db.session.scalar(query)
 
+    def unread_message_count(self):
+        last_read_time = self.last_message_read_time or datetime(1900, 1, 1)
+        query = sa.select(Message).where(Message.recipient == self,
+                                         Message.timestamp > last_read_time)
+        return db.session.scalar(sa.select(sa.func.count()).select_from(query.subquery()))
+    
+    def launch_task(self, name, description, *args, **kwargs):
+        rq_job = current_app.task_queue.enqueue(f'app.tasks.{name}', self.id, *args, **kwargs)
+        task = Task(id=rq_job.get_id(), name=name, description=description, user=self)
+        db.session.add(task)
+        return task
+
+    def get_tasks_in_progress(self):
+        query = self.tasks.select().where(Task.complete == False)
+        return db.session.scalars(query)
+
+    def get_task_in_progress(self, name):
+        query = self.tasks.select().where(Task.name == name, Task.complete == False)
+        return db.session.scalar(query)
+    
     def __repr__(self):
         return '<User {}>'.format(self.username)
     
@@ -77,3 +107,5 @@ class User(db.Model):
 
 from app.models.post import Post
 from app.models.comment import Comment
+from app.models.message import Message
+from app.models.task import Task

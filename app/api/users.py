@@ -17,7 +17,7 @@ def user_show(id):
     return success_response(200, data)
 
 @bp.route('/users', methods=['GET'])
-@token_auth.login_required
+#@token_auth.login_required
 def user_index():
     users = User.query.all()
     data = [user.to_dict() for user in users]

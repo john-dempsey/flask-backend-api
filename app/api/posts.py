@@ -72,3 +72,12 @@ def post_delete(id):
     db.session.commit()
     return success_response(204, None)
 
+@bp.route('/posts/export', methods=['GET'])
+@token_auth.login_required
+def posts_export():
+    user = token_auth.current_user()
+    if user.get_task_in_progress('export_posts'):
+        return error_response(400, 'An export task is currently in progress')
+    user.launch_task('export_posts', 'Exporting posts...')
+    db.session.commit()
+    return success_response(200, 'An export task has been launched. Your posts will be sent to you by email.')

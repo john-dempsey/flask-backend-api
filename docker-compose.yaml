@@ -1,0 +1,63 @@
+services:
+  backend:
+    image: flask-backend-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - backend-network
+    depends_on:
+      - mysql
+      - task-queue
+    environment:
+      - DATABASE_URL=mysql+pymysql://backend:my_secret@mysql/backend
+      - REDIS_URL=redis://redis:6379
+    
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: my_secret
+      MYSQL_DATABASE: backend
+      MYSQL_USER: backend
+      MYSQL_PASSWORD: my_secret
+    ports:
+      - "3306:3306"
+    networks:
+      - backend-network
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - backend-network
+    volumes:
+      - ./redis:/redis
+  
+  task-queue:
+    build: .
+    entrypoint: rq worker backend-api-tasks
+    networks:
+      - backend-network
+    depends_on:
+      - redis
+    environment:
+      - DATABASE_URL=mysql+pymysql://backend:my_secret@mysql/backend
+      - REDIS_URL=redis://redis:6379
+      - MAIL_SERVER=sandbox.smtp.mailtrap.io
+      - MAIL_PORT=2525
+      - MAIL_USERNAME=5e0a3e0025d99a
+      - MAIL_PASSWORD=f94c191b01ccc3
+      - MAIL_USE_TLS=True
+      - MAIL_USE_SSL=False
+
+volumes:
+  mysql_data:
+  redis:
+
+networks:
+  backend-network:
