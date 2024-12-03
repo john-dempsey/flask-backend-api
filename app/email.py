@@ -10,6 +10,8 @@ def send_async_email(app, msg):
         mail.send(msg)
 
 def send_email(subject, sender, recipients, text_body, html_body, attachments=None, sync=False):
+    current_app.logger.info(f"MAIL_SERVER {current_app.config['MAIL_SERVER']}")
+    current_app.logger.info(f"Sending email to {recipients}")
     msg = Message(subject, sender=sender, recipients=recipients)
     msg.body = text_body
     msg.html = html_body

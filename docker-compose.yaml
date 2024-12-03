@@ -14,6 +14,12 @@ services:
     environment:
       - DATABASE_URL=mysql+pymysql://backend:my_secret@mysql/backend
       - REDIS_URL=redis://redis:6379
+      - MAIL_SERVER=sandbox.smtp.mailtrap.io
+      - MAIL_PORT=2525
+      - MAIL_USERNAME=5e0a3e0025d99a
+      - MAIL_PASSWORD=f94c191b01ccc3
+      - MAIL_USE_TLS=True
+      - MAIL_USE_SSL=False
     
   mysql:
     image: mysql:5.7

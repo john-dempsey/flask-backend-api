@@ -1,0 +1,7 @@
+Dear {{ comment.post.author.username }},,
+
+There has been a new comment on your post: "{{ comment.post.body }}".
+
+Sincerely,
+
+The Flask Backend API Team

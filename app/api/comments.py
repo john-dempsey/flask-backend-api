@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 
-from flask import request
+from flask import request, render_template, current_app
 from app import db
-
+from app.email import send_email
 from app.api import bp
 from app.api.errors import success_response, error_response
 from app.api.auth import token_auth
@@ -29,9 +29,17 @@ def comment_post_create(pid):
     author = token_auth.current_user()
     comment = Comment()
     comment.from_dict(data)
+    comment.post = post
     comment.author = author
     db.session.add(comment)
     db.session.commit()
+    send_email("New comment on your post", 
+               current_app.config['ADMINS'][0], 
+               recipients=[post.author.email],
+               text_body=render_template('email/posts_comment.txt', comment=comment),
+               html_body=render_template('email/posts_comment.html', comment=comment),
+               attachments=None, 
+               sync=False)
     response = comment.to_dict()
     return success_response(201, response)
 
